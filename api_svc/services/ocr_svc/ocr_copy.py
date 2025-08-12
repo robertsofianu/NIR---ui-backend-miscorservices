@@ -4,7 +4,6 @@
 # import re
 # from framework.ocr.models import BillInfo, Provider, Customer, InvoiceDetail, Totals, Invoice
 
-# api_key = "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"
 # local_image_path = "/Users/sofianurobert/Downloads/WhatsApp Image 2025-08-12 at 22.19.08.jpeg"
 # MODEL_PATH = "NIR---ui-backend-miscorservices/api_svc/ocr_svc/models/json_model.json"
 
