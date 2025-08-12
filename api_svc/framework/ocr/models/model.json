@@ -1,0 +1,33 @@
+{
+    "bill_info": {
+        "invoice_number": "{invoice_number}",
+        "invoice_series": "{invoice_series}",
+        "invoice_date": "{invoice_date}"
+    },
+    "provider": {
+        "name": "{provider_name}",
+        "address": "{provider_address}",
+        "CIF": "{provider_CIF}"
+    },
+    "customer": {
+        "name": "{customer_name}",
+        "address": "{customer_address}",
+        "location": "{customer_location}"
+    },
+    "invoice_details": [
+        {
+            "product": "{product_name}",
+            "unit": "{unit}",
+            "quantity": "{quantity}",
+            "unit_price": "{unit_price}",
+            "value_without_vat": "{value_without_vat}",
+            "vat_rate": "{vat_rate}",
+            "vat_value": "{vat_value}"
+        }
+    ],
+    "totals": {
+        "total_without_vat": "{total_without_vat}",
+        "total_vat": "{total_vat}",
+        "total_with_vat": "{total_with_vat}"
+    }
+}
