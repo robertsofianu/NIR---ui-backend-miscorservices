@@ -4,9 +4,6 @@
 # import re
 # from framework.ocr.models import BillInfo, Provider, Customer, InvoiceDetail, Totals, Invoice
 
-# local_image_path = "/Users/sofianurobert/Downloads/WhatsApp Image 2025-08-12 at 22.19.08.jpeg"
-# MODEL_PATH = "NIR---ui-backend-miscorservices/api_svc/ocr_svc/models/json_model.json"
-
 # client = OpenAI(api_key=api_key)
 
 # with open(local_image_path, "rb") as image_file:
