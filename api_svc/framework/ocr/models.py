@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from typing import List
 
+
 @dataclass
 class BillInfo:
     invoice_number: str
     invoice_series: str
     invoice_date: str
+
 
 @dataclass
 class Provider:
@@ -13,11 +15,13 @@ class Provider:
     address: str
     CIF: str
 
+
 @dataclass
 class Customer:
     name: str
     address: str
     location: str
+
 
 @dataclass
 class InvoiceDetail:
@@ -29,11 +33,13 @@ class InvoiceDetail:
     vat_rate: int
     vat_value: float
 
+
 @dataclass
 class Totals:
     total_without_vat: float
     total_vat: float
     total_with_vat: float
+
 
 @dataclass
 class Invoice:
