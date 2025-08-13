@@ -51,17 +51,17 @@ class OcrApi:
             print("Error: Unexpected response format")
             print(open_ai_api_prompt)
 
-        return re.sub(r"^```(?:json)?|```$", "",
-                      resp.strip(),
-                      flags=re.MULTILINE).strip()
+        return json.loads(re.sub(r"^```(?:json)?|```$", "",
+                      resp.strip(), flags=re.MULTILINE).strip())
 
     def parse_invoice(self):
-        fetched_invoice_details = json.loads(self.get_invoice_details())
+        fetched_invoice_details = self.get_invoice_details()
 
         bill_info = BillInfo(**fetched_invoice_details["bill_info"])
         provider = Provider(**fetched_invoice_details["provider"])
         customer = Customer(**fetched_invoice_details["customer"])
-        invoice_detail = [InvoiceDetail(**item) for item in fetched_invoice_details["invoice_details"]]
+        invoice_detail = [InvoiceDetail(**item) for \
+            item in fetched_invoice_details["invoice_details"]]
         totals = Totals(**fetched_invoice_details["totals"])
 
         return Invoice(
