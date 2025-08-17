@@ -22,7 +22,8 @@ WORKDIR /app
 RUN apk add --no-cache gcc musl-dev
 
 # Copy Python code and requirements
-COPY services/ocr_svc/ocr_svc.py .
+COPY framework/ ./framework/
+COPY services/ocr_svc/ocr_svc.py ./services/ocr_svc/ocr_svc.py
 COPY services/ocr_svc/requirements.txt .
 
 

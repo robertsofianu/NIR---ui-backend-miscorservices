@@ -13,7 +13,7 @@ class OcrApi:
         self.image_path = image_path
 
     API_KEY = os.getenv("OPENAI_API_KEY")
-    MODEL_PATH = "/Users/sofianurobert/Projects/go_rect_inv_app/NIR---ui-backend-miscorservices/api_svc/framework/ocr/models/model.json"
+    MODEL_PATH = "/framework/ocr/models/model.json"
 
     client = OpenAI(api_key=API_KEY)
 

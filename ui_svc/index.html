@@ -8,5 +8,91 @@
 <body>
     <h1>Welcome to Your Basic HTML Page</h1>
     <p>This is a simple HTML file.</p>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="imageInput">Upload an image:</label>
+        <input type="file" id="imageInput" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="uploadResult"></div>
+    <div id="invoiceTable"></div>
+    <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const resultDiv = document.getElementById('uploadResult');
+        resultDiv.textContent = 'Uploading...';
+        try {
+            const response = await fetch('http://localhost:8081/invoice', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok && data.invoice) {
+                resultDiv.textContent = 'Success!';
+                document.getElementById('invoiceTable').innerHTML = renderInvoiceTable(data.invoice);
+            } else {
+                resultDiv.textContent = 'Error: ' + (data.error || 'Unknown error');
+            }
+        } catch (err) {
+            resultDiv.textContent = 'Error: ' + err;
+        }
+    });
+
+    function renderInvoiceTable(invoices) {
+        let html = `<style>
+            .invoice-table, .details-table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+            .invoice-table th, .invoice-table td, .details-table th, .details-table td { border: 1px solid #ccc; padding: 8px; }
+            .invoice-table th { background: #f2f2f2; }
+            .details-table th { background: #e9e9e9; }
+            .invoice-header { background: #e0e7ff; font-weight: bold; }
+        </style>`;
+        html += '<table class="invoice-table">';
+        html += '<thead><tr class="invoice-header">' +
+            '<th>Invoice Date</th><th>Invoice Number</th><th>Invoice Series</th>' +
+            '<th>Customer</th><th>Provider</th>' +
+            '<th>Totals</th>' +
+            '<th>Details</th>' +
+            '</tr></thead><tbody>';
+        invoices.forEach(inv => {
+            html += '<tr>' +
+                `<td>${inv.bill_info.invoice_date}</td>` +
+                `<td>${inv.bill_info.invoice_number}</td>` +
+                `<td>${inv.bill_info.invoice_series}</td>` +
+                `<td><b>${inv.customer.name}</b><br>${inv.customer.address}</td>` +
+                `<td><b>${inv.provider.name}</b><br>${inv.provider.address}</td>` +
+                `<td>
+                    <b>VAT:</b> ${inv.totals.total_vat}<br>
+                    <b>With VAT:</b> ${inv.totals.total_with_vat}<br>
+                    <b>Without VAT:</b> ${inv.totals.total_without_vat}
+                </td>` +
+                `<td>${renderDetailsTable(inv.invoice_details)}</td>` +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        return html;
+    }
+
+    function renderDetailsTable(details) {
+        let html = '<table class="details-table">';
+        html += '<thead><tr>' +
+            '<th>Product</th><th>Quantity</th><th>Unit</th><th>Unit Price</th>' +
+            '<th>Value Without VAT</th><th>VAT Rate</th><th>VAT Value</th>' +
+            '</tr></thead><tbody>';
+        details.forEach(d => {
+            html += '<tr>' +
+                `<td>${d.product}</td>` +
+                `<td>${d.quantity}</td>` +
+                `<td>${d.unit}</td>` +
+                `<td>${d.unit_price}</td>` +
+                `<td>${d.value_without_vat}</td>` +
+                `<td>${d.vat_rate}</td>` +
+                `<td>${d.vat_value}</td>` +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        return html;
+    }
+    </script>
 </body>
 </html>
