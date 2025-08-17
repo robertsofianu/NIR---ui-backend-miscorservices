@@ -1,3 +1,4 @@
+import os
 import certifi
 from pymongo.mongo_client import MongoClient
 
@@ -7,7 +8,9 @@ class NoSQLDB:
         pass
 
     def client(self):
-        uri = "mongodb+srv://robertsofianu:Sr25102002@cluster0.plyba0p.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+        uri = os.getenv("MONGODB_URI")
+        if not uri:
+            raise ValueError("MONGODB_URI environment variable not set")
         return MongoClient(uri, tlsCAFile=certifi.where())
 
     def get_database(self, db_name):
