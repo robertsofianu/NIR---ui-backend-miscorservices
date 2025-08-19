@@ -16,3 +16,4 @@ services:
       - "8081:8081"
     environment:
       MONGODB_URI: ${MONGODB_URI}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
