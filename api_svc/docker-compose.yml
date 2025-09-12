@@ -1,0 +1,19 @@
+services:
+  gateway:
+    build:
+      context: ./
+      dockerfile: gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ocr_svc
+
+  ocr_svc:
+    build:
+      context: ./
+      dockerfile: services/ocr_svc/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
