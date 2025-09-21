@@ -9,35 +9,80 @@
     <h1>Welcome to Your Basic HTML Page</h1>
     <p>This is a simple HTML file.</p>
     <form id="uploadForm" enctype="multipart/form-data">
-        <label for="imageInput">Upload an image:</label>
-        <input type="file" id="imageInput" name="image" accept="image/*" required>
+        <label for="imageInput">Upload images:</label>
+        <input type="file" id="imageInput" name="images" accept="image/*" multiple required>
         <button type="submit">Upload</button>
     </form>
     <div id="uploadResult"></div>
     <div id="invoiceTable"></div>
     <script>
+
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
+        const formData = new FormData();
+        const files = document.getElementById('imageInput').files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+        }
         const resultDiv = document.getElementById('uploadResult');
         resultDiv.textContent = 'Uploading...';
+        document.getElementById('invoiceTable').innerHTML = '';
         try {
-            const response = await fetch('http://localhost:8081/invoice', {
+            // Upload images
+            const uploadResponse = await fetch('http://localhost:8081/multi-image', {
                 method: 'POST',
                 body: formData
             });
-            const data = await response.json();
-            if (response.ok && data.invoice) {
-                resultDiv.textContent = 'Success!';
-                document.getElementById('invoiceTable').innerHTML = renderInvoiceTable(data.invoice);
+            const uploadData = await uploadResponse.json();
+            if (uploadResponse.ok && uploadData.files && uploadData.token) {
+                resultDiv.textContent = 'Upload results:';
+                document.getElementById('invoiceTable').innerHTML = renderResultsTable(uploadData.files);
+                // Now fetch invoice details using the returned token
+                resultDiv.textContent += ' Fetching invoice details...';
+                const invoiceResponse = await fetch('http://localhost:8081/invoice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: uploadData.token })
+                });
+                const invoiceData = await invoiceResponse.json();
+                if (invoiceResponse.ok && invoiceData.invoice) {
+                    resultDiv.textContent += ' Done.';
+                    // If invoiceData.invoice is an array, render all
+                    if (Array.isArray(invoiceData.invoice)) {
+                        document.getElementById('invoiceTable').innerHTML += renderInvoiceTable(invoiceData.invoice);
+                    } else {
+                        document.getElementById('invoiceTable').innerHTML += renderInvoiceTable([invoiceData.invoice]);
+                    }
+                } else {
+                    resultDiv.textContent += ' Error fetching invoice details.';
+                }
             } else {
-                resultDiv.textContent = 'Error: ' + (data.error || 'Unknown error');
+                resultDiv.textContent = 'Error: ' + (uploadData.error || 'Unknown error');
             }
         } catch (err) {
             resultDiv.textContent = 'Error: ' + err;
         }
     });
+
+    function renderResultsTable(results) {
+        let html = `<style>
+            .results-table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+            .results-table th, .results-table td { border: 1px solid #ccc; padding: 8px; }
+            .results-table th { background: #f2f2f2; }
+        </style>`;
+        html += '<table class="results-table">';
+        html += '<thead><tr>' +
+            '<th>Filename</th><th>Result/Error</th>' +
+            '</tr></thead><tbody>';
+        results.forEach(r => {
+            html += '<tr>' +
+                `<td>${r.filename}</td>` +
+                `<td>${r.result ? r.result : (r.error + (r.details ? ': ' + r.details : ''))}</td>` +
+            '</tr>';
+        });
+        html += '</tbody></table>';
+        return html;
+    }
 
     function renderInvoiceTable(invoices) {
         let html = `<style>

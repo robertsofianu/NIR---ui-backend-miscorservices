@@ -2,14 +2,20 @@ package db
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
+	"math/rand"
 	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var DefaultUser string = "default_user"
 
 func Client() *mongo.Client {
 	uri := os.Getenv("MONGODB_URI")
@@ -30,9 +36,9 @@ func GetCollection(dbName, collectionName string) *mongo.Collection {
 	return collection
 }
 
-func FindActiveInvoice() string {
+func FindActiveInvoice(token string) string {
 	collection := GetCollection("invoices", "invoices")
-	filter := bson.M{"config.is_active": true}
+	filter := bson.M{"config.token": token}
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
@@ -46,4 +52,11 @@ func FindActiveInvoice() string {
 		log.Fatal(err)
 	}
 	return string(jsonData)
+}
+
+func CreateToken(userName string) string {
+	randomNum := rand.Intn(100000000)
+	tokenBody := userName + fmt.Sprint(randomNum)
+	hash := sha256.Sum256([]byte(tokenBody))
+	return hex.EncodeToString(hash[:])
 }

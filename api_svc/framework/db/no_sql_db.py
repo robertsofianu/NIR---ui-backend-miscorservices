@@ -26,6 +26,10 @@ class NoSQLDB:
         collection = db[collection_name]
         collection.insert_one(json_data)
 
+    def get_collection_after_token(self, db_name, collection_name, token):
+        db = self.get_database(db_name)
+        collection = db[collection_name]
+        return list(collection.find({"token": token}))
+
 if __name__ == "__main__":
     db = NoSQLDB()
-    db.add_json_to_collection("invoices", "invoices", {"item": "item1", "price": 100})
