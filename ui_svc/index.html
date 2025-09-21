@@ -4,10 +4,126 @@
     <meta charset="UTF-8">
     <title>Welcome Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #2563eb;
+            text-align: center;
+            margin-top: 30px;
+        }
+        #uploadForm, #showAllInvoicesBtn {
+            display: block;
+            margin: 30px auto 10px auto;
+            max-width: 400px;
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        }
+        #showAllInvoicesBtn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            font-size: 1.1em;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        #showAllInvoicesBtn:hover {
+            background: #1e40af;
+        }
+        .results-table, .invoice-table, .details-table, .all-invoices-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .results-table th, .results-table td,
+        .invoice-table th, .invoice-table td,
+        .details-table th, .details-table td,
+        .all-invoices-table th, .all-invoices-table td {
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .results-table th, .invoice-table th, .all-invoices-table th {
+            background: #f1f5f9;
+        }
+        .details-table th {
+            background: #e0e7ff;
+        }
+        .invoice-header {
+            background: #dbeafe;
+            font-weight: bold;
+        }
+        .invoice-id-link {
+            color: #2563eb;
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        #invoiceModal {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1px solid #2563eb;
+            padding: 32px 24px 24px 24px;
+            z-index: 1000;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(37,99,235,0.12);
+            border-radius: 16px;
+        }
+        #closeModalBtn {
+            cursor: pointer;
+            float: right;
+            font-size: 24px;
+            color: #2563eb;
+            font-weight: bold;
+            margin-top: -12px;
+            margin-right: -12px;
+        }
+        #uploadResult {
+            text-align: center;
+            margin-top: 10px;
+            color: #1e293b;
+        }
+        #allInvoicesTable {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        @media (max-width: 700px) {
+            #invoiceModal {
+                max-width: 95vw;
+                padding: 12px 6px 6px 6px;
+            }
+            .results-table, .invoice-table, .details-table, .all-invoices-table {
+                font-size: 0.95em;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Welcome to Your Basic HTML Page</h1>
     <p>This is a simple HTML file.</p>
+    <button id="showAllInvoicesBtn">Show All Invoices</button>
+    <div id="allInvoicesTable"></div>
+    <div id="invoiceModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #333; padding:20px; z-index:1000; max-width:600px;">
+        <span id="closeModalBtn" style="cursor:pointer; float:right; font-size:20px;">&times;</span>
+        <div id="modalContent"></div>
+    </div>
     <form id="uploadForm" enctype="multipart/form-data">
         <label for="imageInput">Upload images:</label>
         <input type="file" id="imageInput" name="images" accept="image/*" multiple required>
@@ -16,6 +132,65 @@
     <div id="uploadResult"></div>
     <div id="invoiceTable"></div>
     <script>
+
+// Show all invoices logic
+document.getElementById('showAllInvoicesBtn').addEventListener('click', async function() {
+    const tableDiv = document.getElementById('allInvoicesTable');
+    tableDiv.innerHTML = 'Loading...';
+    try {
+        const response = await fetch('http://localhost:8081/invoice');
+        const data = await response.json();
+        if (response.ok && data.invoice && Array.isArray(data.invoice)) {
+            tableDiv.innerHTML = renderAllInvoicesTable(data.invoice);
+        } else {
+            tableDiv.innerHTML = 'No invoices found.';
+        }
+    } catch (err) {
+        tableDiv.innerHTML = 'Error: ' + err;
+    }
+});
+
+function renderAllInvoicesTable(invoices) {
+    let html = `<style>
+        .all-invoices-table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        .all-invoices-table th, .all-invoices-table td { border: 1px solid #ccc; padding: 8px; }
+        .all-invoices-table th { background: #f2f2f2; }
+        .invoice-id-link { color: #2563eb; cursor: pointer; text-decoration: underline; }
+    </style>`;
+    html += '<table class="all-invoices-table">';
+    html += '<thead><tr>' +
+        '<th>Invoice ID</th><th>Date</th><th>Provider</th>' +
+        '</tr></thead><tbody>';
+    invoices.forEach(inv => {
+        html += '<tr>' +
+            `<td><span class="invoice-id-link" onclick="showInvoiceModal('${inv._id.replace(/'/g, "")}', ${encodeURIComponent(JSON.stringify(inv))})">${inv._id}</span></td>` +
+            `<td>${inv.bill_info ? inv.bill_info.invoice_date : ''}</td>` +
+            `<td>${inv.provider ? inv.provider.name : ''}</td>` +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    // Attach modal logic
+    setTimeout(() => { attachInvoiceModalHandlers(invoices); }, 0);
+    return html;
+}
+
+function attachInvoiceModalHandlers(invoices) {
+    document.querySelectorAll('.invoice-id-link').forEach((el, idx) => {
+        el.onclick = function() {
+            showInvoiceModal(invoices[idx]);
+        };
+    });
+}
+
+function showInvoiceModal(invoice) {
+    const modal = document.getElementById('invoiceModal');
+    const contentDiv = document.getElementById('modalContent');
+    contentDiv.innerHTML = renderInvoiceTable([invoice]);
+    modal.style.display = 'block';
+}
+document.getElementById('closeModalBtn').onclick = function() {
+    document.getElementById('invoiceModal').style.display = 'none';
+};
 
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
         e.preventDefault();

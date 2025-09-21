@@ -54,6 +54,23 @@ func FindActiveInvoice(token string) string {
 	return string(jsonData)
 }
 
+func FindAllInvoices() string {
+	collection := GetCollection("invoices", "invoices")
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	var allInvoices []bson.M
+	if err = cursor.All(context.TODO(), &allInvoices); err != nil {
+		log.Fatal(err)
+	}
+	jsonData, err := json.MarshalIndent(allInvoices, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(jsonData)
+}
+
 func CreateToken(userName string) string {
 	randomNum := rand.Intn(100000000)
 	tokenBody := userName + fmt.Sprint(randomNum)

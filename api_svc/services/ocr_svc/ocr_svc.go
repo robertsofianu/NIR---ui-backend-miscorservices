@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getInvoiceDetails(c *gin.Context) {
+func getInvoiceDetailsByToken(c *gin.Context) {
 	var req struct {
 		Token string `json:"token"`
 	}
@@ -19,6 +19,15 @@ func getInvoiceDetails(c *gin.Context) {
 		return
 	}
 	invoiceJson := db.FindActiveInvoice(req.Token)
+	var invoiceData interface{}
+	json.Unmarshal([]byte(invoiceJson), &invoiceData)
+	c.JSON(200, gin.H{
+		"invoice": invoiceData,
+	})
+}
+
+func getInvoiceDetails(c *gin.Context) {
+	invoiceJson := db.FindAllInvoices()
 	var invoiceData interface{}
 	json.Unmarshal([]byte(invoiceJson), &invoiceData)
 	c.JSON(200, gin.H{
@@ -79,7 +88,8 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	r.POST("/invoice", getInvoiceDetails)
+	r.POST("/invoice", getInvoiceDetailsByToken)
+	r.GET("/invoice", getInvoiceDetails)
 	r.POST("/multi-image", postInvoiceRow)
 
 	r.Run(":8081")
